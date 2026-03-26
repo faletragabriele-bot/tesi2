@@ -6,5 +6,4 @@ sudo apt install opennebula-node-kvm -y
 sudo -u oneadmin ssh-keygen -t rsa -N "" -f /var/lib/one/.ssh/id_rsa
 sudo -u oneadmin cp /var/lib/one/.ssh/id_rsa.pub /var/lib/one/.ssh/authorized_keys
 sudo systemctl enable --now opennebula opennebula-fireedge
-sudo ufw allow 2616
-sudo ufw reload
+sudo apt update && sudo apt upgrade -y && sudo autoremove -y
