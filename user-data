@@ -1,0 +1,120 @@
+#cloud-config
+autoinstall:
+  version: 1                        # OBBLIGATORIO — sempre 1
+
+  # ─── CONFERME ────────────────────────────────────────────
+  # Salta tutte le domande interattive
+  interactive-sections: []
+
+  # ─── LOCALE ──────────────────────────────────────────────
+  locale: it_IT.UTF-8               # lingua del sistema installato
+  timezone: Europe/Rome
+
+  # ─── TASTIERA ────────────────────────────────────────────
+  keyboard:
+    layout: it
+    variant: ""                     # lascia vuoto per layout base
+
+  # ─── RETE ────────────────────────────────────────────────
+  # Usa netplan syntax. "dhcp4: true" = configurazione automatica.
+  network:
+    version: 2
+    ethernets:
+      enp0s3:                       # nome interfaccia (varia da macchina a macchina)
+        dhcp4: true
+    # Alternativa IP statico:
+    # enp0s3:
+    #   addresses: [192.168.1.50/24]
+    #   gateway4: 192.168.1.1
+    #   nameservers:
+    #     addresses: [8.8.8.8, 1.1.1.1]
+
+  # ─── IDENTITÀ ────────────────────────────────────────────
+  identity:
+    hostname: OpenNebula   # nome del computer (senza spazi)
+    username: gabriele  # nome utente senza spazi
+    # password DEVE essere in formato hash bcrypt/SHA-512
+    # generalo con: mkpasswd --method=SHA-512 (enter)
+    password: "$6$9aUXKEhwVluI5IWp$TqtRcQYRrzB5oh29YlC4PVsHqGa34FA.9h0Vh7F6L3GPfkk.aTO0U8e/HVTWLDWUQUWKxxS057jOC5ZquCaw81" #Chiavett4
+    # realname:   # nome completo (opzionale)
+
+  # ─── SSH ─────────────────────────────────────────────────
+  ssh:
+    install-server: true            # installa openssh-server
+    allow-pw: true                  # abilita login con password 
+    # authorized-keys:
+    #  - "ssh-ed25519 AAAAC3NzaC1... mario@laptop" # chiave pubblica SSH (opzionale)
+
+  # ─── STORAGE ─────────────────────────────────────────────
+  # Opzione 1: automatico con LVM (più semplice)
+  storage:
+    layout:
+      name: lvm                     # oppure: "direct" (no LVM) o "zfs"
+      match:
+        size: largest               # usa il disco più grande
+
+  # Opzione 2: partizioni manuali (avanzato) — decommentare se necessario
+  # storage:
+  #   config:
+  #     - id: sda
+  #       type: disk
+  #       ptable: gpt
+  #       wipe: superblock
+  #     - id: efi
+  #       type: partition
+  #       device: sda
+  #       size: 512M
+  #       flag: boot
+  #     - id: efi-format
+  #       type: format
+  #       fstype: fat32
+  #       volume: efi
+  #     - id: root-part
+  #       type: partition
+  #       device: sda
+  #       size: -1                  # tutto lo spazio rimanente
+  #     - id: root-format
+  #       type: format
+  #       fstype: ext4
+  #       volume: root-part
+  #     - id: root-mount
+  #       type: mount
+  #       device: root-format
+  #       path: /
+
+  # ─── PACCHETTI ───────────────────────────────────────────
+  packages:
+    - vim # editor di testo
+    - curl # per scaricare file da internet
+    - git # controllo versione
+    - htop # monitoraggio risorse
+    - iproute2 # strumenti di rete
+    - sed # per modificare file di testo da terminale
+    #- ufw # firewall
+    - openssh-sftp-server # per abilitare SFTP
+    - gnupg # per gestire chiavi GPG
+    - wget # per scaricare file da terminale
+    - apt-transport-https # per usare repository HTTPS
+
+  # Aggiorna tutti i pacchetti dopo l'installazione
+  package_update: true
+  package_upgrade: true
+
+  # ─── COMANDI ─────────────────────────────────────────────
+  # Eseguiti PRIMA che l'installer parta (in ambiente live)
+  early-commands:
+    - echo "Inizio installazione" > /tmp/install.log
+
+  # Eseguiti DOPO l'installazione, nel sistema installato (tramite curtin)
+  late-commands:
+    #- curtin in-target --target=/target -- systemctl enable ufw
+    #- curtin in-target --target=/target -- ufw allow ssh #riga fondamentale per permettere al server di accettare connessioni SSH dopo il riavvio
+    #- curtin in-target --target=/target -- ufw --force enable
+    - cp /cdrom/nocloud/autoOpenNebula.sh /target/tmp/
+    - curtin in-target --target=/target -- bash /tmp/autoOpenNebula.sh #script per installare OpenNebula
+
+  # ─── USER-DATA (cloud-init aggiuntivo) ───────────────────
+  # Eseguito al primo avvio del sistema installato
+  user-data:
+    runcmd:
+      - echo "Sistema pronto!" >> /var/log/firstboot.log
