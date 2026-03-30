@@ -1,6 +1,6 @@
 #!/bin/bash
-percorso_input=$1
-percorso_output=$2
+percorso_input=$1 # Percorso dell'ISO di origine
+percorso_output=$2 # Percorso di destinazione per l'ISO personalizzato
 ubuntu_custom_dir=~/ubuntu-custom
 rm -rf "${ubuntu_custom_dir}"
 ubuntu_iso_name_output="ubuntu-autoinstall.iso"
