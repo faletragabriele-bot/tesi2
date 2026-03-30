@@ -18,16 +18,31 @@ autoinstall:
   # ─── RETE ────────────────────────────────────────────────
   # Usa netplan syntax. "dhcp4: true" = configurazione automatica.
   network:
-    version: 2
-    ethernets:
-      enp0s3:                       # nome interfaccia (varia da macchina a macchina)
-        dhcp4: true
+  #  version: 2
+  #  ethernets:
+  #    enp0s3:                       # nome interfaccia (varia da macchina a macchina)
+  #      dhcp4: true
     # Alternativa IP statico:
     # enp0s3:
     #   addresses: [192.168.1.50/24]
     #   gateway4: 192.168.1.1
     #   nameservers:
     #     addresses: [8.8.8.8, 1.1.1.1]
+    version: 2
+    ethernets:
+      enp3s0:
+        addresses: 
+        - 193.205.65.11/24 
+        gateway4: 
+        - 193.205.65.254 
+        nameservers:
+          addresses:
+            - 192.84.137.2
+            - 192.84.137.1
+        routes:
+          - to: default
+            via: 193.205.65.254
+
 
   # ─── IDENTITÀ ────────────────────────────────────────────
   identity:
