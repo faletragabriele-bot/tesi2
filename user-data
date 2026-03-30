@@ -95,6 +95,7 @@ autoinstall:
     - gnupg # per gestire chiavi GPG
     - wget # per scaricare file da terminale
     - apt-transport-https # per usare repository HTTPS
+    - ubuntu-desktop # per installare l'ambiente desktop
 
   # Aggiorna tutti i pacchetti dopo l'installazione
   package_update: true
