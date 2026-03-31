@@ -103,6 +103,7 @@ autoinstall:
     - curl # per scaricare file da internet
     - git # controllo versione
     - htop # monitoraggio risorse
+    - net-tools # strumenti di rete legacy (ifconfig, netstat)
     - iproute2 # strumenti di rete
     - sed # per modificare file di testo da terminale
     #- ufw # firewall
