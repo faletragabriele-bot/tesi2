@@ -18,7 +18,7 @@ touch "${ubuntu_custom_dir}/nocloud/meta-data"
 cp ./autoOpenNebula.sh "${ubuntu_custom_dir}/nocloud/"
 sed -i 's/ ---/autoinstall ds=nocloud\\;s=\/cdrom\/nocloud\/  ---/' "${ubuntu_custom_dir}/boot/grub/grub.cfg"
 xorriso -as mkisofs \
-  -r -V "Ubuntu2404Auto" \
+  -r -V "Chiavetta_Ubuntu2404Auto" \
   -o "${percorso_output}/${ubuntu_iso_name_output}" \
   -J -joliet-long \
   -b boot/grub/i386-pc/eltorito.img \
