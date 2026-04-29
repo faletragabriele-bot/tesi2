@@ -30,6 +30,30 @@ autoinstall:
     #     addresses: [8.8.8.8, 1.1.1.1]
     version: 2
     ethernets:
+      enp3s0f0:
+        addresses: 
+        - 193.205.65.11/24 
+        gateway4: 
+        - 193.205.65.254 
+        nameservers:
+          addresses:
+            - 192.84.137.2
+            - 192.84.137.1
+        routes:
+          - to: default
+            via: 193.205.65.254
+      enp3s0f1:
+        addresses: 
+        - 193.205.65.11/24 
+        gateway4: 
+        - 193.205.65.254 
+        nameservers:
+          addresses:
+            - 192.84.137.2
+            - 192.84.137.1
+        routes:
+          - to: default
+            via: 193.205.65.254
       enp4s0f0:
         addresses: 
         - 193.205.65.11/24 
@@ -42,6 +66,19 @@ autoinstall:
         routes:
           - to: default
             via: 193.205.65.254
+      enp4s0f1:
+        addresses: 
+        - 193.205.65.11/24 
+        gateway4: 
+        - 193.205.65.254 
+        nameservers:
+          addresses:
+            - 192.84.137.2
+            - 192.84.137.1
+        routes:
+          - to: default
+            via: 193.205.65.254
+    
 
 
   # ─── IDENTITÀ ────────────────────────────────────────────
