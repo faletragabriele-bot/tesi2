@@ -18,39 +18,39 @@ autoinstall:
   # ─── RETE ────────────────────────────────────────────────
   # Usa netplan syntax. "dhcp4: true" = configurazione automatica.
   network:
-    version: 2
-    ethernets:
-      enp0s3:                       # nome interfaccia (varia da macchina a macchina)
-        dhcp4: true
+    #version: 2
+    #ethernets:
+    #  enp0s3:                       # nome interfaccia (varia da macchina a macchina)
+    #    dhcp4: true
     # Alternativa IP statico:
     # enp0s3:
     #   addresses: [192.168.1.50/24]
     #   gateway4: 192.168.1.1
     #   nameservers:
     #     addresses: [8.8.8.8, 1.1.1.1]
-  #  version: 2
-  #  ethernets:
-  #    enp3s0:
-  #      addresses: 
-  #      - 193.205.65.11/24 
-  #      gateway4: 
-  #      - 193.205.65.254 
-  #      nameservers:
-  #        addresses:
-  #          - 192.84.137.2
-  #          - 192.84.137.1
-  #      routes:
-  #        - to: default
-  #          via: 193.205.65.254
+    version: 2
+    ethernets:
+      enp4s0f0:
+        addresses: 
+        - 193.205.65.11/24 
+        gateway4: 
+        - 193.205.65.254 
+        nameservers:
+          addresses:
+            - 192.84.137.2
+            - 192.84.137.1
+        routes:
+          - to: default
+            via: 193.205.65.254
 
 
   # ─── IDENTITÀ ────────────────────────────────────────────
   identity:
-    hostname: OpenNebula   # nome del computer (senza spazi)
-    username: gabriele  # nome utente senza spazi
+    hostname: rootserver   # nome del computer (senza spazi)
+    username: server  # nome utente senza spazi
     # password DEVE essere in formato hash bcrypt/SHA-512
     # generalo con: mkpasswd --method=SHA-512 (enter)
-    password: "$6$9aUXKEhwVluI5IWp$TqtRcQYRrzB5oh29YlC4PVsHqGa34FA.9h0Vh7F6L3GPfkk.aTO0U8e/HVTWLDWUQUWKxxS057jOC5ZquCaw81" #Chiavett4
+    password: "$6$invNyHUZw4lWkphJ$w2moIjmOojABblSzLBgK.jfKxUMxFKKi39E5t5VhXLFVoqp0vEliTCIE7wbES5V26eRpT/xBNA2f890cjNyG2." #root@server1234
     # realname:   # nome completo (opzionale)
 
   # ─── SSH ─────────────────────────────────────────────────
