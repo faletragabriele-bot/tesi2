@@ -16,7 +16,7 @@ mkdir "${ubuntu_custom_dir}/nocloud"
 cp ./user-data "${ubuntu_custom_dir}/nocloud/"
 touch "${ubuntu_custom_dir}/nocloud/meta-data"
 cp ./autoOpenNebula.sh "${ubuntu_custom_dir}/nocloud/"
-sed -i 's/ ---/autoinstall ds=nocloud\\;s=\/cdrom\/nocloud\/  ---/' "${ubuntu_custom_dir}/boot/grub/grub.cfg"
+sed -i 's/ ---/autoinstall ds=nocloud\\;s=\/cdrom\/nocloud\/ ---/' "${ubuntu_custom_dir}/boot/grub/grub.cfg"
 xorriso -as mkisofs \
   -r -V "Chiavetta_Ubuntu2404Auto" \
   -o "${percorso_output}/${ubuntu_iso_name_output}" \
