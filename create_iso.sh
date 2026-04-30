@@ -17,10 +17,29 @@ cp ./user-data "${ubuntu_custom_dir}/nocloud/"
 touch "${ubuntu_custom_dir}/nocloud/meta-data"
 cp ./autoOpenNebula.sh "${ubuntu_custom_dir}/nocloud/"
 sed -i 's/ ---/autoinstall ds=nocloud\\;s=\/cdrom\/nocloud\/ ---/' "${ubuntu_custom_dir}/boot/grub/grub.cfg"
+
+"""
 xorriso -as mkisofs \
   -r -V "Chiavetta_Ubuntu2404Auto" \
   -o "${percorso_output}/${ubuntu_iso_name_output}" \
   -J -joliet-long \
   -b boot/grub/i386-pc/eltorito.img \
   -no-emul-boot -boot-load-size 4 -boot-info-table \
+  "${ubuntu_custom_dir}"
+"""
+
+xorriso -as mkisofs \
+  -r -V "Chiavetta_Ubuntu2404Auto" \
+  -o "${percorso_output}/${ubuntu_iso_name_output}" \
+  -J -joliet-long \
+  -l \
+  -iso-level 3 \
+  -partition_offset 16 \
+  -c boot.catalog \
+  -b boot/grub/i386-pc/eltorito.img \
+    -no-emul-boot -boot-load-size 4 -boot-info-table \
+  -eltorito-alt-boot \
+  -e EFI/boot/bootx64.efi \
+    -no-emul-boot \
+  -isohybrid-gpt-basdat \
   "${ubuntu_custom_dir}"
