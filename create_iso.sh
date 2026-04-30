@@ -30,13 +30,12 @@ sed -i 's/ ---/autoinstall ds=nocloud\\;s=\/cdrom\/nocloud\/ ---/' "${ubuntu_cus
 
 
 xorriso -as mkisofs \
-  -r -V "AUTO_U_24.04_S" \
+  -r -V "Chiavetta_Ubuntu2404Auto" \
   -o "${percorso_output}/${ubuntu_iso_name_output}" \
   -J -l \
-  -c boot.catalog \
   -b boot/grub/i386-pc/eltorito.img \
-    -no-emul-boot -boot-load-size 4 -boot-info-table \
-  -eltorito-alt-boot \
-  -e EFI/boot/bootx64.efi \
-    -no-emul-boot \
+  -c boot.catalog \
+  -no-emul-boot \
+  -boot-load-size 4 \
+  -boot-info-table \
   "${ubuntu_custom_dir}"
