@@ -23,15 +23,14 @@ autoinstall:
     #  enp0s3:                       # nome interfaccia (varia da macchina a macchina)
     #    dhcp4: true
     # Alternativa IP statico:
-    # enp0s3:
+    #  enp0s3:
     #   addresses: [192.168.1.50/24]
     #   gateway4: 192.168.1.1
     #   nameservers:
     #     addresses: [8.8.8.8, 1.1.1.1]
 
     version: 2
-
-    bonds:
+    bonds:  # configurazione bonding (link aggregation)
       bond0:
         interfaces:
           - enp3s0f0
