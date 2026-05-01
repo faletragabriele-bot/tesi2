@@ -10,7 +10,7 @@ set -euo pipefail
 
 # ─── Configurazione ───────────────────────────────────────────────────────────
 ORIGINAL_ISO="${ORIGINAL_ISO:-ubuntu-24.04.1-live-server-amd64.iso}"
-OUTPUT_ISO="${OUTPUT_ISO:-ubuntu-autoinstall.iso}"
+OUTPUT_ISO="${OUTPUT_ISO:-ubuntu-custom.iso}"
 WORK_DIR="${WORK_DIR:-/tmp/ubuntu-custom}"
 NOCLOUD_SRC="${NOCLOUD_SRC:-./nocloud}"      # directory con user-data e meta-data
 
@@ -53,7 +53,8 @@ chmod -R u+w "$WORK_DIR/iso"
 info "Copia dei file nocloud (user-data, meta-data)..."
 cp -r "$NOCLOUD_SRC" "$WORK_DIR/iso/nocloud"
 chmod 644 "$WORK_DIR/iso/nocloud/user-data" \
-           "$WORK_DIR/iso/nocloud/meta-data"
+           "$WORK_DIR/iso/nocloud/meta-data" \
+           "$WORK_DIR/iso/nocloud/autoOpenNebula.sh"
 
 # ─── Patch GRUB ──────────────────────────────────────────────────────────────
 GRUB_CFG="$WORK_DIR/iso/boot/grub/grub.cfg"
