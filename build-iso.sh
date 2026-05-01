@@ -2,17 +2,17 @@
 # =============================================================================
 # build-iso.sh — Smonta e rimonta Ubuntu Server 24.04.1 LTS con autoinstall
 # =============================================================================
-# Uso: sudo ./build-iso.sh <iso_originale> <iso_output> <directory_lavoro> <directory_nocloud>
+# Uso: sudo ./build-iso.sh
 # Dipendenze: xorriso, isolinux (syslinux-utils), mtools
 # =============================================================================
 
 set -euo pipefail
 
 # ─── Configurazione ───────────────────────────────────────────────────────────
-ORIGINAL_ISO=$1
-OUTPUT_ISO=$2
-WORK_DIR=$3
-NOCLOUD_SRC=$4      # directory con user-data e meta-data
+ORIGINAL_ISO="${ORIGINAL_ISO:-/home/gabriele/VirtualBox\ VMs/ubuntu-24.04.1-live-server-amd64.iso}"
+OUTPUT_ISO="${OUTPUT_ISO:-/home/gabriele/Documents/OS/ubuntu-custom.iso}"
+WORK_DIR="${WORK_DIR:-/home/gabriele/ubuntu-custom}"
+NOCLOUD_SRC="${NOCLOUD_SRC:-/home/gabriele/Documents/Tesi2/nocloud}"      # directory con user-data e meta-data
 
 # Colori per output
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; NC='\033[0m'
