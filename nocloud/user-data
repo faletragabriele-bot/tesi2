@@ -30,6 +30,11 @@ autoinstall:
     #     addresses: [8.8.8.8, 1.1.1.1]
 
     version: 2
+    ethernets:
+      enp3s0f0: {}
+      enp3s0f1: {}
+      enp4s0f0: {}
+      enp4s0f1: {}
     bonds:  # configurazione bonding (link aggregation)
       bond0:
         interfaces:
@@ -121,7 +126,7 @@ autoinstall:
     - gnupg # per gestire chiavi GPG
     - wget # per scaricare file da terminale
     - apt-transport-https # per usare repository HTTPS
-    - ubuntu-desktop # per installare l'ambiente desktop
+    #- ubuntu-desktop # per installare l'ambiente desktop, spostato nei late-commands perché dava problemi con l'installer
 
   # Aggiorna tutti i pacchetti dopo l'installazione
   package_update: true
@@ -139,6 +144,8 @@ autoinstall:
     #- curtin in-target --target=/target -- ufw --force enable
     - cp /cdrom/nocloud/autoOpenNebula.sh /target/tmp/
     - curtin in-target --target=/target -- bash /tmp/autoOpenNebula.sh #script per installare OpenNebula
+    - curtin in-target --target=/target -- apt-get install -y ubuntu-desktop # spostato qui perché dava problemi con l'installer se lasciato nella sezione "packages"
+
 
   # ─── USER-DATA (cloud-init aggiuntivo) ───────────────────
   # Eseguito al primo avvio del sistema installato

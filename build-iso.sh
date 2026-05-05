@@ -9,7 +9,7 @@
 set -euo pipefail
 
 # ─── Configurazione ───────────────────────────────────────────────────────────
-ORIGINAL_ISO="${ORIGINAL_ISO:-/home/gabriele/VirtualBox\ VMs/ubuntu-24.04.1-live-server-amd64.iso}"
+ORIGINAL_ISO="${ORIGINAL_ISO:-/home/gabriele/VirtualBox VMs/ubuntu-24.04.1-live-server-amd64.iso}"
 OUTPUT_ISO="${OUTPUT_ISO:-/home/gabriele/Documents/OS/ubuntu-custom.iso}"
 WORK_DIR="${WORK_DIR:-/home/gabriele/ubuntu-custom}"
 NOCLOUD_SRC="${NOCLOUD_SRC:-/home/gabriele/Documents/Tesi2/nocloud}"      # directory con user-data e meta-data
@@ -125,12 +125,13 @@ dd if="$ORIGINAL_ISO" bs=1 count=432 of="$MBR_IMG" status=none
 EFI_OFFSET=$(xorriso -indev "$ORIGINAL_ISO" -report_el_torito as_mkisofs 2>/dev/null \
   | grep -oP '(?<=--efi-boot-part --efi-boot-image --protective-msdos-label).*' || true)
 
-# Metodo alternativo: leggi direttamente con fdisk
+# Usa sfdisk -d: output strutturato (start=N, size=N, type=EF)
+# non dipende dal path del file → sicuro con spazi nel nome ISO
 SECTOR_SIZE=512
-EFI_START_SECTOR=$(fdisk -l "$ORIGINAL_ISO" 2>/dev/null \
-  | awk '/EFI/ {print $2}' | head -1 || echo "")
-EFI_SIZE_SECTOR=$(fdisk -l "$ORIGINAL_ISO" 2>/dev/null \
-  | awk '/EFI/ {print $4}' | head -1 || echo "")
+EFI_START_SECTOR=$(sfdisk -d "$ORIGINAL_ISO" 2>/dev/null \
+  | awk -F'[=,]' '/type=EF/{gsub(/ /,"",$2); print $2}' | head -1 || echo "")
+EFI_SIZE_SECTOR=$(sfdisk -d "$ORIGINAL_ISO" 2>/dev/null \
+  | awk -F'[=,]' '/type=EF/{gsub(/ /,"",$4); print $4}' | head -1 || echo "")
 
 if [[ -n "$EFI_START_SECTOR" && -n "$EFI_SIZE_SECTOR" ]]; then
   dd if="$ORIGINAL_ISO" \
@@ -153,7 +154,7 @@ rm -f "$OUTPUT_ISO"
 XORRISO_ARGS=(
   xorriso -as mkisofs
   -r
-  -V "Ubuntu-Server-24.04.1-Autoinstall"
+  -V "Ubuntu-Server-24.04.1-auto"
   --modification-date="$(date -u +%Y%m%d%H%M%S)00"
   -o "$OUTPUT_ISO"
 
