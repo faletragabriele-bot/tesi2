@@ -129,13 +129,14 @@ autoinstall:
     #- curtin in-target --target=/target -- systemctl enable ufw
     #- curtin in-target --target=/target -- ufw allow ssh
     #- curtin in-target --target=/target -- ufw --force enable
+    - curtin in-target --target=/target -- sed -i 's|autoinstall ds=nocloud\\;s=/cdrom/nocloud/||g' /target/boot/grub/grub.cfg # rimuove autoinstall e la parte ds= che punta alla ISO
+    - curtin in-target --target=/target -- sed -i 's|autoinstall||g' /target/boot/grub/grub.cfg # rimuove eventuali autoinstall rimasti (se presenti più volte)
     - cp /cdrom/nocloud/autoOpenNebula.sh /target/tmp/
     - curtin in-target --target=/target -- bash /tmp/autoOpenNebula.sh  # installa OpenNebula
     - curtin in-target --target=/target -- apt-get install -y ubuntu-desktop  # installa GUI a rete attiva
     # Rimuove i parametri autoinstall dal grub del sistema installato
     # senza questo al riavvio cerca /cdrom che non esiste più → [FAILED]
-    - sed -i 's|autoinstall ds=nocloud\\;s=/cdrom/nocloud/||g' /target/boot/grub/grub.cfg
-    - sed -i 's|autoinstall||g' /target/boot/grub/grub.cfg
+
 
   # ─── USER-DATA (cloud-init aggiuntivo) ───────────────────
   # Eseguito al primo avvio del sistema installato
