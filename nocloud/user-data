@@ -16,26 +16,14 @@ autoinstall:
     variant: ""                     # lascia vuoto per layout base
 
   # ─── RETE ────────────────────────────────────────────────
-  # Usa netplan syntax. "dhcp4: true" = configurazione automatica.
   network:
-    #version: 2
-    #ethernets:
-    #  enp0s3:                       # nome interfaccia (varia da macchina a macchina)
-    #    dhcp4: true
-    # Alternativa IP statico:
-    #  enp0s3:
-    #   addresses: [192.168.1.50/24]
-    #   gateway4: 192.168.1.1
-    #   nameservers:
-    #     addresses: [8.8.8.8, 1.1.1.1]
-
     version: 2
-    ethernets:
+    ethernets:          # definizione interfacce fisiche — obbligatorio per il bond
       enp3s0f0: {}
       enp3s0f1: {}
       enp4s0f0: {}
       enp4s0f1: {}
-    bonds:  # configurazione bonding (link aggregation)
+    bonds:              # configurazione bonding (link aggregation)
       bond0:
         interfaces:
           - enp3s0f0
@@ -45,7 +33,6 @@ autoinstall:
         parameters:
           mode: active-backup
           primary: enp3s0f0
-
         dhcp4: false
         addresses:
           - 193.205.65.11/24
@@ -56,13 +43,11 @@ autoinstall:
           addresses:
             - 192.84.137.2
             - 192.84.137.1
-    
-
 
   # ─── IDENTITÀ ────────────────────────────────────────────
   identity:
-    hostname: rootserver   # nome del computer (senza spazi)
-    username: server  # nome utente senza spazi
+    hostname: rootserver              # nome del computer (senza spazi)
+    username: server                  # nome utente senza spazi
     # password DEVE essere in formato hash bcrypt/SHA-512
     # generalo con: mkpasswd --method=SHA-512 (enter)
     password: "$6$invNyHUZw4lWkphJ$w2moIjmOojABblSzLBgK.jfKxUMxFKKi39E5t5VhXLFVoqp0vEliTCIE7wbES5V26eRpT/xBNA2f890cjNyG2." #root@server1234
@@ -70,18 +55,17 @@ autoinstall:
 
   # ─── SSH ─────────────────────────────────────────────────
   ssh:
-    install-server: true            # installa openssh-server
-    allow-pw: true                  # abilita login con password 
+    install-server: true              # installa openssh-server
+    allow-pw: true                    # abilita login con password
     # authorized-keys:
     #  - "ssh-ed25519 AAAAC3NzaC1... mario@laptop" # chiave pubblica SSH (opzionale)
 
   # ─── STORAGE ─────────────────────────────────────────────
-  # Opzione 1: automatico con LVM (più semplice)
   storage:
     layout:
-      name: lvm                     # oppure: "direct" (no LVM) o "zfs"
+      name: lvm                       # oppure: "direct" (no LVM) o "zfs"
       match:
-        size: largest               # usa il disco più grande
+        size: largest                 # usa il disco più grande
 
   # Opzione 2: partizioni manuali (avanzato) — decommentare se necessario
   # storage:
@@ -102,7 +86,7 @@ autoinstall:
   #     - id: root-part
   #       type: partition
   #       device: sda
-  #       size: -1                  # tutto lo spazio rimanente
+  #       size: -1                    # tutto lo spazio rimanente
   #     - id: root-format
   #       type: format
   #       fstype: ext4
@@ -113,20 +97,22 @@ autoinstall:
   #       path: /
 
   # ─── PACCHETTI ───────────────────────────────────────────
+  # Solo pacchetti già presenti nella ISO — nessuna connessione internet necessaria
   packages:
-    - vim # editor di testo
-    - curl # per scaricare file da internet
-    - git # controllo versione
-    - htop # monitoraggio risorse
-    - net-tools # strumenti di rete legacy (ifconfig, netstat)
-    - iproute2 # strumenti di rete
-    - sed # per modificare file di testo da terminale
-    #- ufw # firewall
-    - openssh-sftp-server # per abilitare SFTP
-    - gnupg # per gestire chiavi GPG
-    - wget # per scaricare file da terminale
-    - apt-transport-https # per usare repository HTTPS
-    #- ubuntu-desktop # per installare l'ambiente desktop, spostato nei late-commands perché dava problemi con l'installer
+    - vim                             # editor di testo
+    - curl                            # per scaricare file da internet
+    - git                             # controllo versione
+    - htop                            # monitoraggio risorse
+    - net-tools                       # strumenti di rete legacy (ifconfig, netstat)
+    - iproute2                        # strumenti di rete
+    - sed                             # per modificare file di testo da terminale
+    #- ufw                            # firewall
+    - openssh-sftp-server             # per abilitare SFTP
+    - gnupg                           # per gestire chiavi GPG
+    - wget                            # per scaricare file da terminale
+    - apt-transport-https             # per usare repository HTTPS
+    # ubuntu-desktop rimosso da qui — viene installato nei late-commands
+    # quando la rete (bond0) è già attiva e stabile
 
   # Aggiorna tutti i pacchetti dopo l'installazione
   package_update: true
@@ -138,14 +124,18 @@ autoinstall:
     - echo "Inizio installazione" > /tmp/install.log
 
   # Eseguiti DOPO l'installazione, nel sistema installato (tramite curtin)
+  # A questo punto il bond0 è attivo e la rete funziona
   late-commands:
     #- curtin in-target --target=/target -- systemctl enable ufw
-    #- curtin in-target --target=/target -- ufw allow ssh #riga fondamentale per permettere al server di accettare connessioni SSH dopo il riavvio
+    #- curtin in-target --target=/target -- ufw allow ssh
     #- curtin in-target --target=/target -- ufw --force enable
     - cp /cdrom/nocloud/autoOpenNebula.sh /target/tmp/
-    - curtin in-target --target=/target -- bash /tmp/autoOpenNebula.sh #script per installare OpenNebula
-    - curtin in-target --target=/target -- apt-get install -y ubuntu-desktop # spostato qui perché dava problemi con l'installer se lasciato nella sezione "packages"
-
+    - curtin in-target --target=/target -- bash /tmp/autoOpenNebula.sh  # installa OpenNebula
+    - curtin in-target --target=/target -- apt-get install -y ubuntu-desktop  # installa GUI a rete attiva
+    # Rimuove i parametri autoinstall dal grub del sistema installato
+    # senza questo al riavvio cerca /cdrom che non esiste più → [FAILED]
+    - sed -i 's|autoinstall ds=nocloud\\;s=/cdrom/nocloud/||g' /target/boot/grub/grub.cfg
+    - sed -i 's|autoinstall||g' /target/boot/grub/grub.cfg
 
   # ─── USER-DATA (cloud-init aggiuntivo) ───────────────────
   # Eseguito al primo avvio del sistema installato
