@@ -67,7 +67,7 @@ autoinstall:
       match:
         size: largest                 # usa il disco più grande
 
-  # Opzione 2: partizioni manuali (avanzato) — decommentare se necessario
+  # Opzione 2: partizioni manuali
   # storage:
   #   config:
   #     - id: sda
@@ -129,13 +129,11 @@ autoinstall:
     #- curtin in-target --target=/target -- systemctl enable ufw
     #- curtin in-target --target=/target -- ufw allow ssh
     #- curtin in-target --target=/target -- ufw --force enable
-    - curtin in-target --target=/target -- sed -i 's|autoinstall ds=nocloud\\;s=/cdrom/nocloud/||g' /target/boot/grub/grub.cfg # rimuove autoinstall e la parte ds= che punta alla ISO
-    - curtin in-target --target=/target -- sed -i 's|autoinstall||g' /target/boot/grub/grub.cfg # rimuove eventuali autoinstall rimasti (se presenti più volte)
-    - cp /cdrom/nocloud/autoOpenNebula.sh /target/tmp/
+    - curtin in-target --target=/target -- sed -i 's|autoinstall ds=nocloud\\;s=/cdrom/nocloud/||g' /boot/grub/grub.cfg # rimuove autoinstall e la parte ds= che punta alla ISO
+    - curtin in-target --target=/target -- sed -i 's|autoinstall||g' /boot/grub/grub.cfg # rimuove eventuali autoinstall rimasti (se presenti più volte)
+    - cp /cdrom/nocloud/autoOpenNebula.sh /target/tmp/ # copia lo script di installazione di OpenNebula nel sistema installato
     - curtin in-target --target=/target -- bash /tmp/autoOpenNebula.sh  # installa OpenNebula
-    - curtin in-target --target=/target -- apt-get install -y ubuntu-desktop  # installa GUI a rete attiva
-    # Rimuove i parametri autoinstall dal grub del sistema installato
-    # senza questo al riavvio cerca /cdrom che non esiste più → [FAILED]
+    - curtin in-target --target=/target -- apt-get install -y ubuntu-desktop  # installa interfaccia grafica a rete attiva
 
 
   # ─── USER-DATA (cloud-init aggiuntivo) ───────────────────
