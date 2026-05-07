@@ -99,6 +99,7 @@ autoinstall:
   # ─── PACCHETTI ───────────────────────────────────────────
   # Solo pacchetti già presenti nella ISO — nessuna connessione internet necessaria
   packages:
+    - snapd                           # per installare pacchetti snap (es. Firefox)
     - vim                             # editor di testo
     - curl                            # per scaricare file da internet
     - git                             # controllo versione
@@ -133,6 +134,7 @@ autoinstall:
     - curtin in-target --target=/target -- sed -i 's|autoinstall||g' /boot/grub/grub.cfg # rimuove eventuali autoinstall rimasti (se presenti più volte)
     - cp /cdrom/nocloud/autoOpenNebula.sh /target/tmp/ # copia lo script di installazione di OpenNebula nel sistema installato
     - curtin in-target --target=/target -- bash /tmp/autoOpenNebula.sh  # installa OpenNebula
+    - curtin in-target --target=/target -- snap install firefox  # installa Firefox tramite snap
     - curtin in-target --target=/target -- apt-get install -y ubuntu-desktop  # installa interfaccia grafica a rete attiva
 
 
