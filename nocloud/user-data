@@ -112,6 +112,7 @@ autoinstall:
     - gnupg                           # per gestire chiavi GPG
     - wget                            # per scaricare file da terminale
     - apt-transport-https             # per usare repository HTTPS
+    - emacs                            # altro editor di testo
     # ubuntu-desktop rimosso da qui — viene installato nei late-commands
     # quando la rete (bond0) è già attiva e stabile
 
