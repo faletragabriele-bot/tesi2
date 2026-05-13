@@ -205,7 +205,7 @@ ${YAML_BOND_IFACES}
     - gnupg
     - wget
     - apt-transport-https
-    - emacs
+    #- emacs
     #- ufw
 
   package_update: true
@@ -222,7 +222,8 @@ ${YAML_BOND_IFACES}
     - curtin in-target --target=/target -- bash /tmp/autoOpenNebula.sh
     - curtin in-target --target=/target -- snap install firefox
     - curtin in-target --target=/target -- apt-get install -y ubuntu-desktop
-
+    - curtin in-target --target=/target -- bash -c 'export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -y emacs'
+    #- curtin in-target --target=/target -- bash -c 'export DEBIAN_FRONTEND=noninteractive && apt-get -o Dpkg::Options::="--force-confnew" install -y emacs'
   # ─── USER-DATA (cloud-init primo avvio) ──────────────────
   user-data:
     runcmd:
