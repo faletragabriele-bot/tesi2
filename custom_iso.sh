@@ -51,16 +51,16 @@ trap 'warn "Errore — pulizia $temp_dir..."; rm -rf "$temp_dir"' ERR
 # ─── Generazione autoOpenNebula.sh ────────────────────────────────────────────
 cat > "$temp_dir/nocloud/autoOpenNebula.sh" << "EOF"
 #!/usr/bin/env bash
-set -euo pipefail
-wget -4 -O- https://downloads.opennebula.io/repo/repo2.key | gpg --dearmor --yes --output /etc/apt/trusted.gpg.d/opennebula.gpg
-echo "deb https://downloads.opennebula.io/repo/7.0/Ubuntu/24.04 stable opennebula" | tee /etc/apt/sources.list.d/opennebula.list
+wget -4 -O- https://downloads.opennebula.io/repo/repo2.key | sudo gpg --dearmor --yes --output /etc/apt/trusted.gpg.d/opennebula.gpg
+echo "deb https://downloads.opennebula.io/repo/7.0/Ubuntu/24.04 stable opennebula" | sudo tee /etc/apt/sources.list.d/opennebula.list
 apt update
-apt install -y opennebula opennebula-fireedge opennebula-guacd
-apt install -y opennebula-node-kvm
+apt install opennebula opennebula-fireedge opennebula-guacd -y
+apt install opennebula-node-kvm -y
 sudo -u oneadmin ssh-keygen -t rsa -N "" -f /var/lib/one/.ssh/id_rsa
 sudo -u oneadmin cp /var/lib/one/.ssh/id_rsa.pub /var/lib/one/.ssh/authorized_keys
 systemctl enable --now opennebula opennebula-fireedge
 apt update && apt upgrade -y && apt autoremove -y
+
 EOF
 
 touch "$temp_dir/nocloud/meta-data"
@@ -128,8 +128,13 @@ done
 PRIMARY_IFACE="${INTERFACES_LIST[0]}"
 
 # DNS come lista YAML inline (es: [8.8.8.8, 8.8.4.4])
-DNS_INLINE=$(printf '%s, ' "${DNS_LIST[@]}")
-DNS_INLINE="[${DNS_INLINE%, }]"
+#DNS_INLINE=$(printf '%s, ' "${DNS_LIST[@]}")
+#DNS_INLINE="[${DNS_INLINE%, }]"
+
+YAML_DNS=""
+for iface in "${DNS_LIST[@]}"; do
+  YAML_DNS+="            - ${iface}"$'\n'
+done
 
 # ─── Generazione user-data ────────────────────────────────────────────────────
 info "Generazione user-data..."
@@ -171,7 +176,8 @@ ${YAML_BOND_IFACES}
           - to: default
             via: ${gateway}
         nameservers:
-          addresses: ${DNS_INLINE}
+          addresses: 
+${YAML_DNS}
 
   # ─── IDENTITÀ ────────────────────────────────────────────
   identity:
