@@ -3,7 +3,7 @@
 # custom_iso.sh — crea da 0 una iso con autoinstall
 # =============================================================================
 # Uso: sudo ./custom_iso.sh
-# Dipendenze: xorriso, mtools, whois (mkpasswd), python3
+# Dipendenze: xorriso, whois (mkpasswd), python3
 # =============================================================================
 
 set -euo pipefail
@@ -19,11 +19,8 @@ error() { echo -e "${RED}[ERROR]${NC} $*"; exit 1; }
 
 # ─── Controlli preliminari ────────────────────────────────────────────────────
 [[ $EUID -eq 0 ]] || error "Esegui lo script come root: sudo $0"
-
-for cmd in xorriso mksquashfs unsquashfs 7z; do
-  command -v "$cmd" &>/dev/null || warn "Comando '$cmd' non trovato — potrebbe servire."
-done
 command -v xorriso &>/dev/null || error "xorriso non trovato. Installa con: apt install xorriso"
+command -v wget    &>/dev/null || error "wget non trovato. Installa con: apt install wget"
 
 # ─── Funzione hash password ───────────────────────────────────────────────────
 hash_password() {
@@ -39,7 +36,7 @@ print(crypt.crypt(pwd, crypt.mksalt(crypt.METHOD_SHA512)))
   fi
 }
 
-# ─── Pulizia e preparazione directory ────────────────────────────────────────
+# ─── Preparazione directory temporanea ───────────────────────────────────────
 info "Preparazione directory di lavoro..."
 temp_dir=$(mktemp -d)
 mkdir -p "$temp_dir/iso"
@@ -51,16 +48,16 @@ trap 'warn "Errore — pulizia $temp_dir..."; rm -rf "$temp_dir"' ERR
 # ─── Generazione autoOpenNebula.sh ────────────────────────────────────────────
 cat > "$temp_dir/nocloud/autoOpenNebula.sh" << "EOF"
 #!/usr/bin/env bash
-wget -4 -O- https://downloads.opennebula.io/repo/repo2.key | sudo gpg --dearmor --yes --output /etc/apt/trusted.gpg.d/opennebula.gpg
-echo "deb https://downloads.opennebula.io/repo/7.0/Ubuntu/24.04 stable opennebula" | sudo tee /etc/apt/sources.list.d/opennebula.list
+set -euo pipefail
+wget -4 -O- https://downloads.opennebula.io/repo/repo2.key | gpg --dearmor --yes --output /etc/apt/trusted.gpg.d/opennebula.gpg
+echo "deb https://downloads.opennebula.io/repo/7.0/Ubuntu/24.04 stable opennebula" | tee /etc/apt/sources.list.d/opennebula.list
 apt update
-apt install opennebula opennebula-fireedge opennebula-guacd -y
-apt install opennebula-node-kvm -y
+apt install -y opennebula opennebula-fireedge opennebula-guacd
+apt install -y opennebula-node-kvm
 sudo -u oneadmin ssh-keygen -t rsa -N "" -f /var/lib/one/.ssh/id_rsa
 sudo -u oneadmin cp /var/lib/one/.ssh/id_rsa.pub /var/lib/one/.ssh/authorized_keys
 systemctl enable --now opennebula opennebula-fireedge
 apt update && apt upgrade -y && apt autoremove -y
-
 EOF
 
 touch "$temp_dir/nocloud/meta-data"
@@ -88,6 +85,9 @@ done
 read -p "Indirizzo IP (es. 192.168.1.10): " ip_address
 [[ -z "$ip_address" ]] && error "Indirizzo IP obbligatorio."
 
+read -p "CIDR/netmask (es. 24 per 255.255.255.0, default: 24): " ip_cidr
+ip_cidr=${ip_cidr:-24}
+
 read -p "Gateway (es. 192.168.1.1): " gateway
 [[ -z "$gateway" ]] && error "Gateway obbligatorio."
 
@@ -105,21 +105,29 @@ hostname=${hostname:-rootserver}
 read -p "Username (default: server): " username
 username=${username:-server}
 
-read -s -p "Password (default: root@server1234): " password
-echo
-password=${password:-root@server1234}
+while true; do
+  read -s -p "Password (default: root@server1234): " password
+  echo
+  password=${password:-root@server1234}
+  read -s -p "Conferma password: " password_confirm
+  echo
+  if [[ "$password" == "$password_confirm" ]]; then
+    break
+  else
+    warn "Le password non corrispondono. Riprova."
+  fi
+done
 
 info "Calcolo hash password..."
 password_hash=$(hash_password "$password")
+[[ -z "$password_hash" ]] && error "Errore nel calcolo dell'hash della password."
 
 # ─── Costruzione blocchi YAML per array ───────────────────────────────────────
-# Interfacce per la sezione ethernets (es: "      eth0: {}")
 YAML_ETHERNETS=""
 for iface in "${INTERFACES_LIST[@]}"; do
   YAML_ETHERNETS+="      ${iface}: {}"$'\n'
 done
 
-# Interfacce per la sezione bond (es: "          - eth0")
 YAML_BOND_IFACES=""
 for iface in "${INTERFACES_LIST[@]}"; do
   YAML_BOND_IFACES+="          - ${iface}"$'\n'
@@ -127,19 +135,14 @@ done
 
 PRIMARY_IFACE="${INTERFACES_LIST[0]}"
 
-# DNS come lista YAML inline (es: [8.8.8.8, 8.8.4.4])
-#DNS_INLINE=$(printf '%s, ' "${DNS_LIST[@]}")
-#DNS_INLINE="[${DNS_INLINE%, }]"
-
 YAML_DNS=""
-for iface in "${DNS_LIST[@]}"; do
-  YAML_DNS+="            - ${iface}"$'\n'
+for dns in "${DNS_LIST[@]}"; do
+  YAML_DNS+="            - ${dns}"$'\n'
 done
 
 # ─── Generazione user-data ────────────────────────────────────────────────────
 info "Generazione user-data..."
 
-# NOTA: heredoc senza virgolette → le variabili bash vengono espanse
 cat > "$temp_dir/nocloud/user-data" << EOF
 #cloud-config
 autoinstall:
@@ -171,14 +174,13 @@ ${YAML_BOND_IFACES}
           primary: ${PRIMARY_IFACE}
         dhcp4: false
         addresses:
-          - ${ip_address}/24
+          - ${ip_address}/${ip_cidr}
         routes:
           - to: default
             via: ${gateway}
         nameservers:
-          addresses: 
+          addresses:
 ${YAML_DNS}
-
   # ─── IDENTITÀ ────────────────────────────────────────────
   identity:
     hostname: ${hostname}
@@ -211,7 +213,6 @@ ${YAML_DNS}
     - gnupg
     - wget
     - apt-transport-https
-    #- emacs
     #- ufw
 
   package_update: true
@@ -227,9 +228,9 @@ ${YAML_DNS}
     - cp /cdrom/nocloud/autoOpenNebula.sh /target/tmp/
     - curtin in-target --target=/target -- bash /tmp/autoOpenNebula.sh
     - curtin in-target --target=/target -- snap install firefox
-    - curtin in-target --target=/target -- apt-get install -y ubuntu-desktop
-    - curtin in-target --target=/target -- bash -c 'export DEBIAN_FRONTEND=noninteractive && apt-get update && apt-get install -y emacs'
-    #- curtin in-target --target=/target -- bash -c 'export DEBIAN_FRONTEND=noninteractive && apt-get -o Dpkg::Options::="--force-confnew" install -y emacs'
+    - curtin in-target --target=/target -- bash -c 'DEBIAN_FRONTEND=noninteractive apt-get install -y ubuntu-desktop'
+    - curtin in-target --target=/target -- bash -c 'DEBIAN_FRONTEND=noninteractive apt-get install -y emacs'
+
   # ─── USER-DATA (cloud-init primo avvio) ──────────────────
   user-data:
     runcmd:
@@ -259,8 +260,8 @@ chmod -R u+w "$temp_dir/iso"
 info "Copia dei file nocloud..."
 cp -r "$temp_dir/nocloud" "$temp_dir/iso/nocloud"
 chmod 644 "$temp_dir/iso/nocloud/user-data" \
-           "$temp_dir/iso/nocloud/meta-data" \
-           "$temp_dir/iso/nocloud/autoOpenNebula.sh"
+           "$temp_dir/iso/nocloud/meta-data"
+chmod 755 "$temp_dir/iso/nocloud/autoOpenNebula.sh"
 
 # ─── Patch GRUB ──────────────────────────────────────────────────────────────
 GRUB_CFG="$temp_dir/iso/boot/grub/grub.cfg"
@@ -390,9 +391,9 @@ else
 fi
 
 # ─── Pulizia ──────────────────────────────────────────────────────────────────
+trap - ERR
 info "Pulizia directory temporanea..."
 rm -rf "$temp_dir"
-trap - ERR
 
 info ""
 info "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
